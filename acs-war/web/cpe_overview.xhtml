@@ -1,0 +1,249 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:a4j="http://richfaces.org/a4j"
+	xmlns:rich="http://richfaces.org/rich"
+	xmlns:f="http://java.sun.com/jsf/core">
+
+<!--
+    
+    Copyright 2007-2012 Audrius Valunas
+
+    This file is part of LibreACS.
+
+    LibreACS is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    LibreACS is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with LibreACS.  If not, see <http://www.gnu.org/licenses/>.
+
+    -->
+
+<ui:composition template="mt.xhtml">
+	<ui:define name="title">Cpe info for #{Cpe.sn}</ui:define>
+	<ui:define name="body">
+		<a4j:region>
+			<h:form>
+				<a4j:poll id="poll" interval="1000" reRender="cr_panel" />
+			</h:form>
+		</a4j:region>
+		<a4j:form id="cpedetails" reRender="panel">
+			<h:panelGrid class="dr-pnl-b rich-panel-body" columns="1" id="panel">
+				<rich:panel columns="3">
+					<f:facet name="header">
+						<h:outputText value="Generic informations"></h:outputText>
+					</f:facet>
+					<rich:dataTable style="text-align:center" columns="6"
+						value="#{Cpe}" var="c">
+						<rich:column>
+							<f:facet name="header">
+								<h:outputText value="Serial number" />
+							</f:facet>
+							<h:outputText value="#{c.sn}" />
+						</rich:column>
+						<rich:column>
+							<f:facet name="header">
+								<h:outputText value="Vendor" />
+							</f:facet>
+							<h:outputText value="#{c.model.manufacturer}" />
+						</rich:column>
+						<rich:column>
+							<f:facet name="header">
+								<h:outputText value="OUI" />
+							</f:facet>
+							<h:outputText value="#{c.model.oui}" />
+						</rich:column>
+						<rich:column>
+							<f:facet name="header">
+								<h:outputText value="Model" />
+							</f:facet>
+							<h:outputText value="#{c.model.hclass}" />
+						</rich:column>
+						<rich:column>
+							<f:facet name="header">
+								<h:outputText value="Hardware" />
+							</f:facet>
+							<h:outputText value="#{c.hardware}" />
+						</rich:column>
+						<rich:column>
+							<f:facet name="header">
+								<h:outputText value="Customer ID" />
+							</f:facet>
+							<h:outputText value="#{c.customerId}" />
+						</rich:column>
+					</rich:dataTable>
+				</rich:panel>
+				<rich:panel id="cr_panel">
+					<f:facet name="header">
+						<h:outputLabel value="CPE operations" />
+					</f:facet>
+					<h:outputLabel value="Connection request URL: "
+						styleClass="rich-label" />
+					<h:outputText value="#{Cpe.url}" />
+					<rich:progressBar id="pb" value="#{Cpe.currentValue}"
+						interval="1000" label="#{Cpe.currentValue} %"
+						enabled="#{Cpe.inProgress}" minValue="-1" maxValue="100"
+						reRenderAfterComplete="cpedetails">
+						<f:facet name="initial">
+							<a4j:commandButton action="#{Cpe.connectionRequest}"
+								value="Connection Request" reRender="pb,cr_panel, poll"
+								disabled="#{Cpe.inProgress}" styleClass="rich-button" />
+						</f:facet>
+						<f:facet name="complete">
+							<a4j:commandButton action="#{Cpe.connectionRequest}"
+								value="Connection Request" reRender="pb,cr_panel, poll"
+								disabled="#{Cpe.inProgress}" styleClass="rich-button" />
+						</f:facet>
+					</rich:progressBar>
+					<h:outputLabel value="Last Conreq: " />
+					<h:outputText value="#{Cpe.reqRes}" id="crStatus" />
+					<br />
+					<h:outputLabel value="Last Inform: " />
+					<h:outputText value="#{Cpe.lastcontact}" />
+					<br />
+					<h:outputLink target="new" value="#{Cpe.webUIUrl}" title="CPE page">
+						<h:outputText value="Go to CPE web UI" />
+					</h:outputLink>
+					<br />
+					<h:commandButton value="Reboot" action="#{Cpe.requestReboot}"
+						styleClass="rich-button" />
+					<h:outputText
+						value="(this will mark CPE for reboot and try to request connection.)" />
+				</rich:panel>
+				<rich:panel>
+					<f:facet name="header">
+						<h:outputLabel value="Configuration" />
+					</f:facet>
+					<rich:dataTable style="text-align:right" columns="6" value="#{Cpe}"
+						var="c">
+						<rich:column>
+							<f:facet name="header">
+								<h:outputText value="Config name" />
+							</f:facet>
+							<h:outputText value="#{c.configname}" />
+						</rich:column>
+						<rich:column>
+							<f:facet name="header">
+								<h:outputText value="Config version" />
+							</f:facet>
+							<h:outputText value="#{c.cfgversion}" />
+						</rich:column>
+						<rich:column>
+							<f:facet name="header">
+								<h:outputText value="Config update at" />
+							</f:facet>
+							<h:outputText value="#{c.cfgupdtime}" />
+						</rich:column>
+						<rich:column>
+							<f:facet name="header">
+								<h:outputText value="Upgrade Result" />
+							</f:facet>
+							<h:outputText value="#{c.cfgupdres}" />
+						</rich:column>
+					</rich:dataTable>
+				</rich:panel>
+				<rich:panel>
+					<f:facet name="header">
+						<h:outputLabel value="Software" />
+					</f:facet>
+					<rich:dataTable style="text-align:right" columns="6" value="#{Cpe}"
+						var="c">
+						<rich:column>
+							<f:facet name="header">
+								<h:outputText value="SW version" />
+							</f:facet>
+							<h:outputText value="#{c.currversion}" />
+						</rich:column>
+						<rich:column>
+							<f:facet name="header">
+								<h:outputText value="SW update at" />
+							</f:facet>
+							<h:outputText value="#{c.sfwupdtime}" />
+						</rich:column>
+						<rich:column>
+							<f:facet name="header">
+								<h:outputText value="Upgrade Result" />
+							</f:facet>
+							<h:outputText value="#{c.sfwupdres}" />
+						</rich:column>
+					</rich:dataTable>
+				</rich:panel>
+				<rich:panel rendered="#{Cpe.dslStatsReady}">
+					<f:facet name="header">
+						<h:outputLabel value="Line" />
+					</f:facet>
+					<h:panelGrid style="text-align:right" columns="2">
+						<h:outputLabel value="Modulation: " />
+						<h:outputText value="#{Cpe.modulationType}" />
+						<h:outputLabel value=" Status: " />
+						<h:outputText value="#{Cpe.lineStatus}" />
+					</h:panelGrid>
+					<h:panelGrid style="text-align:right" columns="6" rendered="true"
+						border="1">
+						<h:outputText value=" " />
+						<h:outputText value="Current rate (Kbps)" />
+						<h:outputText value="Max rate (Kbps)" />
+						<h:outputText value="Attenuation (db)" />
+						<h:outputText value="Noise margin (db)" />
+						<h:outputText value="Power (dBmV)" />
+						<h:outputText value="Downstream: " />
+						<h:outputText value="#{Cpe.downstreamCurrRate}" />
+						<h:outputText value="#{Cpe.downstreamMaxRate}" />
+						<h:outputText value="#{Cpe.downstreamAttenuation div 10}" />
+						<h:outputText value="#{Cpe.downstreamNoiseMargin div 10}" />
+						<h:outputText value="#{Cpe.downstreamPower div 10}" />
+						<h:outputText value="Upstream: " />
+						<h:outputText value="#{Cpe.upstreamCurrRate}" />
+						<h:outputText value="#{Cpe.upstreamMaxRate}" />
+						<h:outputText value="#{Cpe.upstreamAttenuation div 10}" />
+						<h:outputText value="#{Cpe.upstreamNoiseMargin div 10}" />
+						<h:outputText value="#{Cpe.upstreamPower div 10}" />
+					</h:panelGrid>
+				</rich:panel>
+				<ui:include src="cpe_atmstats.xhtml">
+					<ui:param name="atmerrorstats"
+						value="#{Cpe.atmErrorStatsQuarterHour}" />
+					<ui:param name="atmerrorstatsname" value="QuarterHour" />
+				</ui:include>
+				<ui:include src="cpe_atmstats.xhtml">
+					<ui:param name="atmerrorstats"
+						value="#{Cpe.atmErrorStatsLastShowTime}" />
+					<ui:param name="atmerrorstatsname" value="LastShowTime" />
+				</ui:include>
+				<ui:include src="cpe_atmstats.xhtml">
+					<ui:param name="atmerrorstats" value="#{Cpe.atmErrorStatsShowTime}" />
+					<ui:param name="atmerrorstatsname" value="ShowTime" />
+				</ui:include>
+				<ui:include src="cpe_atmstats.xhtml">
+					<ui:param name="atmerrorstats"
+						value="#{Cpe.atmErrorStatsCurrentDay}" />
+					<ui:param name="atmerrorstatsname" value="CurrentDay" />
+				</ui:include>
+				<ui:include src="cpe_atmstats.xhtml">
+					<ui:param name="atmerrorstats" value="#{Cpe.atmErrorStatsTotal}" />
+					<ui:param name="atmerrorstatsname" value="Total" />
+				</ui:include>
+			</h:panelGrid>
+			<br />
+
+		</a4j:form>
+		<h:form>
+			<h:commandButton class="rich-button" type="submit" value="Remove"
+				onclick="if (!confirm('Are you sure you want to remove it?')) { return false; }"
+				action="#{Cpe.Remove}" />
+		</h:form>
+	</ui:define>
+	<ui:define name="lmenu">
+		<ui:include src="cpe_menu.xhtml" />
+	</ui:define>
+
+</ui:composition>
+</html>

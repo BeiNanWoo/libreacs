@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>LibreACS reade me</title>
+<style type="text/css">
+<!--
+body
+	{background:white;
+	color:black}
+h1, h2
+	{margin-top:12pt;
+	margin-right:0;
+	margin-bottom:3pt;
+	margin-left:0;
+	page-break-after:avoid;
+	font-family:Arial,sans-serif}
+h1
+	{font-size:16pt;
+	text-align:center}
+h2
+	{font-size:14pt}
+p
+	{margin:9px;
+	font-size:12pt;
+	font-family:"Times New Roman",serif}
+
+code, kbd, pre, samp, var
+	{font-family:monospace; font-style:normal; /* especially for var */
+	font-size:10pt}
+pre
+	{background:#bbb;
+	color:black;
+	margin:9px 18px;
+	padding:4px 8px}
+
+code, kbd, samp, var
+	{background:#feb;
+	color:black;
+	padding:1px 2px}
+-->
+</style>
+</head>
+<body>
+<h1>LibreACS reade me</h1>
+
+<h2>Compiling from source</h2>
+
+<p>To compile source distribution you must have JDK and Apache Ant.</p>
+
+<p>Edit <samp>build.properties</samp> file to set where is jboss located in your machine.
+Run ant with no args in directory where build.xml is located.
+The built <samp>acs.ear</samp> will be in dist directory.</p>
+
+<h2>Deploying</h2>
+
+<p>Theoretically should run on any java application server but development and
+testing was done using JBoss application server 4.2.2 and MySQL database server.<br/>
+<br/>
+To get LibreACS running you should:<br/>
+1. Setup on your machine JBoss 4.2.2<br/>
+2. Configure data source in jboss by creating <samp>openacs-ds.xml</samp> in JBoss default
+deployment directory, by default <kbd>JBoss_installation_dir/server/default/deploy</kbd><br/>
+<samp>openacs-ds.xml</samp>:</p>
+
+<pre>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;datasources&gt;
+  &lt;local-tx-datasource&gt;
+    &lt;jndi-name&gt;ACS&lt;/jndi-name&gt;
+    &lt;connection-url&gt;your_db_url, e.g. jdbc:mysql://localhost/ACS&lt;/connection-url&gt;
+    &lt;driver-class&gt;com.mysql.jdbc.Driver&lt;/driver-class&gt;
+    &lt;user-name&gt;your_db_user&lt;/user-name&gt;
+    &lt;password&gt;your_db_password&lt;/password&gt;
+    &lt;min-pool-size&gt;5&lt;/min-pool-size&gt;
+    &lt;max-pool-size&gt;20&lt;/max-pool-size&gt;
+    &lt;idle-timeout-minutes&gt;5&lt;/idle-timeout-minutes&gt;
+  &lt;/local-tx-datasource&gt;
+&lt;/datasources&gt;</pre>
+
+<p>3. Setup MySQL database server and create database and user to match the ones
+you've configured in step 3.<br/>
+f.e. connect to your server and execute these commands:</p>
+
+<pre>CREATE DATABASE ACS;
+GRANT ALL ON ACS.* TO your_db_user IDENTIFIED BY 'your_db_password'</pre>
+
+<p>4. Create file <samp>openacs-service.xml</samp> in <kbd>JBoss_installation_dir/server/default/deploy/jms</kbd>:</p>
+
+<pre>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;server&gt;
+  &lt;mbean code=&quot;org.jboss.mq.server.jmx.Queue&quot; name=&quot;jboss.mq.destination:service=Queue,name=acsQueue&quot;&gt;
+    &lt;depends optional-attribute-name=&quot;DestinationManager&quot;&gt;jboss.mq:service=DestinationManager&lt;/depends&gt;
+  &lt;/mbean&gt;
+&lt;/server&gt;</pre>
+
+<p>5. Copy <samp>openacs.ear</samp> to <kbd>JBoss_installation_dir/server/default/deploy</kbd>.</p>
+
+<h2>Running</h2>
+
+<p>Web interface is accessible at <kbd>http://your.server.ip:8080/openacs/index.jsf</kbd>
+[<a href="http://127.0.0.1:8080/openacs/index.jsf">example link to localhost</a>].</p>
+
+<p>You should configure your CPE with the URL of ACS, it is
+<kbd>http://your.server.ip:8080/openacs/acs</kbd>
+[<a href="http://127.0.0.1:8080/openacs/acs">example link to localhost</a>].
+Also you should configure your CPE to send periodic Inform requests to server.</p>
+
+<p>Server responds to Inform RPC and puts information about device into database
+(configurable via context parameter <var>org.openacs.AutoCreateCPE</var>),
+compares software version reported and updates software if needed, then compares
+version of config reported and does the same. After that messages from JMS queue
+are processed.</p>
+
+<p><b>Configs:</b> supports only text files which are put to cpe using Download RPC
+call. It is required that configuration contains it's version number in such a
+way that it is reported by CPE in Inform call (this is dependant on CPE model).
+Some CPE's require that the config file had specific name (e.g. <samp>user.ini</samp>).</p>
+
+<p><b>Software: </b>firmware images must be put manually into
+<kbd>c:\firmware</kbd> directory (that can be changed in
+deployment descriptor in context parameter <var>org.openacs.fwbase</var>) and it must be
+configured using web ui.</p>
+
+</body>
+</html>
